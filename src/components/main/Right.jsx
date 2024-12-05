@@ -1,10 +1,10 @@
 
 function Right() {
-    return (
-      <div className="Right">
-      </div>
-    );
-  }
-  
-  export default Right;
-  
+  return (
+    <div className="Right">
+      Right
+    </div>
+  );
+}
+
+export default Right;

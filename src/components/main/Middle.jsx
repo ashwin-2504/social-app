@@ -2,6 +2,7 @@
 function Middle() {
   return (
     <div className="Middle">
+      Middle
     </div>
   );
 }

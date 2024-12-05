@@ -1,17 +1,18 @@
 import './Layout.css';
-import Header from './navigation/Header';
-import Right from './main/Right'
-import Middle from './main/Middle'
-import Left from './main/Left'
+import Header from './navigation/Header.jsx';
+import Right from './main/Right.jsx';
+import Middle from './main/Middle.jsx';
+import Left from './main/Left.jsx';
 
 function Layout() {
   return (
     <div className='layout'>
-        <Header className='header'/>
-        <Right className='right' />
-        <Middle className='middle' />
-        <Left className='left' />
-
+      <Header />
+      <div className="main">
+        <Left />
+        <Middle />
+        <Right />
+      </div>
     </div>
   );
 }
