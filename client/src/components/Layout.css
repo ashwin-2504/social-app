@@ -1,0 +1,55 @@
+/* Layout container */
+.layout {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100dvh;
+    max-width: 100vw;
+    /* border: 1px solid red; */
+    overflow: hidden;
+}
+
+/* Header Section */
+.Header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 80px;
+    padding: 0 20px;
+    /* border: 2px dotted blue; */
+    background-color: white;
+}
+
+/* Main Content Container */
+.main {
+    display: grid;
+    grid-template-columns: 1.25fr 3fr 1.25fr;
+    /* Left: 1fr, Middle: 3fr, Right: 1fr */
+    flex-grow: 1;
+    /* border: 1px solid black; */
+    height: calc(100dvh - 70px);
+}
+
+/* Left Sidebar */
+.Left {
+    background-color: purple;
+    display: flex;
+    /* border: 2px ridge violet; */
+    padding: 11px;
+}
+
+/* Middle Content */
+.Middle {
+    background-color: green;
+    display: flex;
+    /* border: 2px dashed purple; */
+    padding: 10px;
+}
+
+/* Right Sidebar */
+.Right {
+    background-color: red;
+    display: flex;
+    /* border: 2px double green; */
+    padding: 10px;
+}
