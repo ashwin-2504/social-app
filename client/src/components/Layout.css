@@ -18,16 +18,18 @@
     padding: 0 20px;
     /* border: 2px dotted blue; */
     background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* Main Content Container */
 .main {
     display: grid;
-    grid-template-columns: 1.25fr 3fr 1.25fr;
+    grid-template-columns: 1.5fr 3fr 1.5fr;
     /* Left: 1fr, Middle: 3fr, Right: 1fr */
     flex-grow: 1;
     /* border: 1px solid black; */
     height: calc(100dvh - 70px);
+    overflow: hidden;
 }
 
 /* Left Sidebar */
@@ -40,10 +42,15 @@
 
 /* Middle Content */
 .Middle {
-    background-color: green;
+    /* background-color: green; *
     display: flex;
     /* border: 2px dashed purple; */
-    padding: 10px;
+
+    width: 100%;
+    padding: 20px;
+    padding-top: 0;
+    height: 100vh;
+    overflow-y: scroll;
 }
 
 /* Right Sidebar */
