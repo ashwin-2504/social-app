@@ -9,32 +9,34 @@ function Posts() {
   useEffect(() => {
     axios.get('http://localhost:5000/api/posts') // API call to the server
       .then(response => {
-        console.log("Response received:", response); // Log the response data
-        setPosts(response.data.posts); // Set the posts data in state
+        console.log("Response received:", response);
+        setPosts(response.data.posts);
       })
       .catch(error => {
-        console.error("Error fetching data:", error); // Log any errors
-        setError(error); // Set error state
+        console.error("Error fetching data:", error);
+        setError(error);
       });
   }, []);
 
   return (
     <div>
-      {error && <div>Error loading posts: {error.message}</div>} {/* Display error if there's an error */}
+      {error && <div className="error-message">Error loading posts: {error.message}</div>}
       {posts.length > 0 ? (
-        <>
-          {posts.map(post => (
-
-            <div className='post' key={post.id}> {/* Each post should have a unique 'key' */}
-              <div className='header'>{post.username}</div> {/* Display the username */}
-              <div className='content'>{post.content}</div>
-              <div className='timeStamp'>{post.created_at}</div>
+        posts.map(post => (
+          <div className='post' key={post.id}>
+            <div className='header'>
+              <div className='username'>{post.username}</div>
             </div>
-
-          ))}
-        </>
+            <div className='content-text'>{post.data}</div>
+            {post.image && (
+              <div className='image'>
+                <img src={post.image} alt="Post content" />
+              </div>
+            )}
+          </div>
+        ))
       ) : (
-        <div>No posts available.</div> // If no posts, display a message
+        <div>No posts available.</div>
       )}
     </div>
   );
