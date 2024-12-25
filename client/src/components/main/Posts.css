@@ -1,58 +1,103 @@
-/* Global box-sizing */
+/* Global reset */
 * {
     box-sizing: border-box;
-    text-align: left;
-
+    margin: 0;
+    padding: 0;
 }
 
 li {
     list-style: none;
 }
 
-.posts {
-    
-}
-
+/* Post container */
 .post {
-    display: block;
+    display: flex;
+    flex-direction: column;
     width: 100%;
-    /* Limit the post to 80% width */
-    margin: 20px auto;
-    /* Center the post */
-    border: 0.5px solid black;
-    background-color: #f9f9f9;
-    /* Add a subtle background color for contrast */
+    max-width: 800px;
+    /* Adjust the width of posts */
+    margin: 30px auto;
+    padding: 10px;
+    border-radius: 6px;
+    /* Soft rounded corners */
+    background-color: #fff;
+    /* White background for the card */
+    box-shadow: 0 0 14px 14px rgba(0, 0, 0, 0.1);
+    /* Subtle shadow */
+    border: 1px solid #e0e0e0;
+    /* Light border */
+    transition: all 0.3s ease;
+    /* Smooth transition */
 }
 
+
+/* Header with user info */
 .header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 10px;
+    margin-bottom: 15px;
+    font-family: 'Helvetica', sans-serif;
+    color: #333;
+}
+
+/* Username and timestamp styling */
+.header .username {
     font-weight: bold;
-    border-bottom: 0.5px solid black;
-    /* Make the header text stand out */
+    font-size: 1.1em;
+    /* Soft blue */
+    margin-right: 15px;
 }
 
-.content {
-    padding: 10px;
+/* Content styling */
+.content-text {
+    font-family: 'Arial', sans-serif;
+    font-size: 1.05em;
+    letter-spacing: 0.5px;
+    line-height: 1.8;
+
+    line-height: 1.6;
+    text-align: left;
+    /* Space before image */
+}
+
+/* Image container */
+.image {
     margin-top: 10px;
-    border-bottom: 0.5px solid black;
+    text-align: center;
 }
 
-.timeStamp {
-    padding: 10px;
-    text-align: right;
-
-    /* Align timestamp to the right */
-    margin-top: 10px;
-    /* Space between content and timestamp */
+.image img {
+    max-width: 100%;
+    /* Ensure the image fits within the width of the post */
+    max-height: 400px;
+    /* Restrict the height to the post box's maximum */
+    height: auto;
+    /* Maintain aspect ratio for horizontal images */
+    width: auto;
+    /* Maintain aspect ratio for vertical images */
+    object-fit: contain;
+    /* Ensures the image fits without being cropped */
+    transition: transform 0.3s ease;
+    /* Smooth hover transition */
+    border-radius: 6px;
 }
+
 
 /* Optional: Media Query for smaller screens */
 @media (max-width: 768px) {
     .post {
-        width: 100%;
-        /* Make posts take up the full width on small screens */
+        width: 95%;
+        /* Make posts full width on small screens */
+        padding: 15px;
+        /* Less padding on mobile */
+    }
+
+    .header .username {
+        font-size: 1em;
+        /* Slightly smaller username */
+    }
+
+    .content-text {
+        font-size: 0.95em;
     }
 }
