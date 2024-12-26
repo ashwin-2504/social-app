@@ -2,8 +2,9 @@ const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
 const app = express();
+const argon2 = require('argon2');
+const jwt = require('jsonwebtoken');
 const PORT = 5000;
 
 app.use(express.json());
@@ -51,18 +52,7 @@ app.get('/api/posts', (req, res) => {
 });
 
 
-
-
-// Middleware to authenticate requests based on origin
-function authenticateRequest(req, res, next) {
-    const origin = req.get('origin');
-    if (origin !== 'http://localhost:3000') { // Adjust based on your frontend URL
-        return res.status(403).json({ error: "Unauthorized access" });
-    }
-    next();
-}
-
-app.post('/api/posts', upload.array('images', 10), (req, res) => {
+app.post('/api/posts', authenticateToken, upload.array('images', 10), (req, res) => {
     const { user_id, data, likes_count = 0, created_at = new Date().toISOString() } = req.body;
 
     // Check if the required fields are present
@@ -144,7 +134,75 @@ app.get('/api/images/:id', (req, res) => {
     });
 });
 
-// More routes for CRUD operations (posts, likes, etc.)
+
+// Middleware to verify JWT token
+function authenticateToken(req, res, next) {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (!token) {
+        return res.status(403).json({ error: 'No token provided' });
+    }
+
+    jwt.verify(token, 'secretkey', (err, decoded) => {
+        if (err) {
+            return res.status(401).json({ error: 'Invalid token' });
+        }
+        req.user = decoded; // Attach the user data to the request
+        next();
+    });
+}
+
+
+// Signup route
+// Route to handle user sign-up
+app.post('/api/signup', async (req, res) => {
+    const { username, email, password } = req.body;
+
+    // Check if email or username already exists
+    db.get('SELECT * FROM users WHERE email = ? OR username = ?', [email, username], async (err, row) => {
+        if (row) {
+            return res.status(400).json({ error: 'Email or Username already exists' });
+        }
+
+        try {
+            // Hash the password before saving it in the database
+            const hashedPassword = await argon2.hash(password);
+
+            // Insert new user into the database
+            const query = 'INSERT INTO users (username, email, password) VALUES (?, ?, ?)';
+            db.run(query, [username, email, hashedPassword], function (err) {
+                if (err) {
+                    return res.status(500).json({ error: err.message });
+                }
+                res.status(201).json({ message: 'User registered successfully' });
+            });
+        } catch (err) {
+            return res.status(500).json({ error: 'Error hashing password' });
+        }
+    });
+});
+
+
+// Signin route
+// Route to handle user sign-in
+app.post('/api/signin', async (req, res) => {
+    const { email, password } = req.body;
+    db.get('SELECT * FROM users WHERE email = ?', [email], async (err, row) => {
+        if (err || !row) {
+            return res.status(400).json({ error: 'Invalid credentials' });
+        }
+        try {
+            const isValid = await argon2.verify(row.password, password);
+            if (!isValid) {
+                return res.status(400).json({ error: 'Invalid credentials' });
+            }
+            const token = jwt.sign({ id: row.id, email: row.email }, 'secretkey', { expiresIn: '1h' });
+            res.json({ message: 'Sign-in successful', token });
+        } catch (err) {
+            return res.status(500).json({ error: 'Error verifying password' });
+        }
+    });
+});
+
 
 // Start the server
 app.listen(PORT, () => {
