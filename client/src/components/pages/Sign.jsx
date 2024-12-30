@@ -36,7 +36,7 @@ function Sign() {
 
       if (response.ok) {
         if (isSignIn) {
-          login(data.token);  // Set the token in context
+          login(data.token, data.user_id);  // Set the token in context
           setSuccessMessage('Sign In successful!');
           setTimeout(() => navigate('/'), 1000); // Redirect after success
         } else {

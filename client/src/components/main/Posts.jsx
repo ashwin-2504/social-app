@@ -9,7 +9,6 @@ function Posts() {
   useEffect(() => {
     axios.get('http://localhost:5000/api/posts') // API call to the server
       .then(response => {
-        console.log("Response received:", response);
         setPosts(response.data.posts);
       })
       .catch(error => {

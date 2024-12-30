@@ -1,22 +1,28 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate for redirection
+import { useNavigate } from 'react-router-dom';
 import Header from '../main/Header';
 import { useDropzone } from 'react-dropzone';
 import './NewPost.css';
 
-function NewPost(props) {
+function NewPost({ userId: propUserId }) {
     const [files, setFiles] = useState([]);
     const [textContent, setTextContent] = useState('');
-    const navigate = useNavigate(); // Initialize the useNavigate hook
+    const navigate = useNavigate();
+
 
     const { getRootProps, getInputProps } = useDropzone({
-        accept: { 'image/*': [] }, // Accept all image types
-        onDrop: acceptedFiles => {
-            setFiles(acceptedFiles.map(file => Object.assign(file, { preview: URL.createObjectURL(file) })));
+        accept: { 'image/*': [] },
+        onDrop: (acceptedFiles) => {
+            setFiles(
+                acceptedFiles.map((file) =>
+                    Object.assign(file, { preview: URL.createObjectURL(file) })
+                )
+            );
         },
     });
 
-    const thumbs = files.map(file => (
+    // Generate image previews
+    const thumbs = files.map((file) => (
         <div className="thumb" key={file.name}>
             <div className="thumbInner">
                 <img
@@ -29,51 +35,67 @@ function NewPost(props) {
         </div>
     ));
 
+    // Cleanup URL.createObjectURL when the component unmounts or files change
     useEffect(() => {
-        return () => files.forEach(file => URL.revokeObjectURL(file.preview));
+        return () => files.forEach((file) => URL.revokeObjectURL(file.preview));
     }, [files]);
 
     const handleTextChange = (event) => {
         setTextContent(event.target.value);
     };
 
-    const handleSubmit = (event) => {
+    const validateForm = () => {
+        if (!textContent.trim() && files.length === 0) {
+            alert('Please enter some text or upload an image.');
+            return false;
+        }
+        return true;
+    };
+
+    const prepareFormData = () => {
+        const formData = new FormData();
+        const user_id = localStorage.getItem('user_id');
+        formData.append('data', textContent);
+        formData.append('user_id', user_id);
+        files.forEach((file) => formData.append('images', file));
+        return formData;
+    };
+
+    const handleSubmit = async (event) => {
         event.preventDefault();
-        const textContent = document.querySelector('textarea').value.trim();
-    
-        // Check if there is text or files
-        if (!textContent && !files.length) {
-            alert("Please enter some text or upload an image.");
+
+        if (!validateForm()) return;
+
+        const formData = prepareFormData();
+        const authToken = localStorage.getItem('authToken'); // Get the token from localStorage
+
+        if (!authToken) {
+            alert('User is not authenticated');
             return;
         }
-    
-        // Create a FormData object to send both text and images
-        const formData = new FormData();
-        formData.append('user_id', 1); // Add the user ID (should be dynamically set)
-        formData.append('data', textContent); // Changed from 'content' to 'data'
-    
-        // Append images to the FormData object
-        files.forEach(file => {
-            formData.append('images', file);  // Make sure this matches the field name in your server code
-        });
-    
-        // Send the data to the backend via POST request
-        fetch('http://localhost:5000/api/posts', {
-            method: 'POST',
-            body: formData,
-        })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Post created successfully:', data);
-                alert('Post created successfully!');
-                navigate('/'); // Redirect to the homepage
-            })
-            .catch(error => {
-                console.error('Error creating post:', error);
-                alert('Error creating post');
+
+        try {
+            const response = await fetch('/api/posts', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${authToken}`
+                },
+                body: formData
             });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to create post');
+            }
+
+            const result = await response.json();
+            console.log('Post created successfully:', result);
+            // Handle successful post creation (e.g., redirect or update UI)
+        } catch (error) {
+            console.error('Error creating post:', error);
+            alert(error.message);
+        }
     };
-    
 
     return (
         <>
