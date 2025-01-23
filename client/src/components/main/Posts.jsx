@@ -29,7 +29,7 @@ function Posts() {
             <div className='content-text'>{post.data}</div>
             {post.image && (
               <div className='image'>
-                <img src={post.image} alt="Post content" />
+                <img src={`http://localhost:5000${post.image}`} alt="Post content" />
               </div>
             )}
           </div>

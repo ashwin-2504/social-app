@@ -1,124 +1,111 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Header from '../main/Header';
+import React, { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
+import Headers from '../main/Header';
 import './NewPost.css';
 
-function NewPost({ userId: propUserId }) {
+function NewPost() {
     const [files, setFiles] = useState([]);
-    const [textContent, setTextContent] = useState('');
-    const navigate = useNavigate();
-
-
+    const [postContent, setPostContent] = useState('');
     const { getRootProps, getInputProps } = useDropzone({
-        accept: { 'image/*': [] },
+        accept: 'image/*',
         onDrop: (acceptedFiles) => {
             setFiles(
-                acceptedFiles.map((file) =>
-                    Object.assign(file, { preview: URL.createObjectURL(file) })
-                )
+                acceptedFiles.map((file) => {
+                    // Ensure only valid File objects are used
+                    return Object.assign(file, {
+                        preview: URL.createObjectURL(file),
+                    });
+                })
             );
         },
     });
 
-    // Generate image previews
-    const thumbs = files.map((file) => (
-        <div className="thumb" key={file.name}>
-            <div className="thumbInner">
-                <img
-                    src={file.preview}
-                    className="preview"
-                    onLoad={() => URL.revokeObjectURL(file.preview)}
-                    alt={file.name}
-                />
-            </div>
-        </div>
-    ));
 
-    // Cleanup URL.createObjectURL when the component unmounts or files change
     useEffect(() => {
-        return () => files.forEach((file) => URL.revokeObjectURL(file.preview));
+        return () => {
+            files.forEach(file => URL.revokeObjectURL(file.preview));
+        };
     }, [files]);
 
-    const handleTextChange = (event) => {
-        setTextContent(event.target.value);
+    const handlePostContentChange = (e) => {
+        setPostContent(e.target.value);
     };
 
-    const validateForm = () => {
-        if (!textContent.trim() && files.length === 0) {
-            alert('Please enter some text or upload an image.');
-            return false;
-        }
-        return true;
-    };
+    const handleSubmit = async (e) => {
+        e.preventDefault();
 
-    const prepareFormData = () => {
-        const formData = new FormData();
         const user_id = localStorage.getItem('user_id');
-        formData.append('data', textContent);
-        formData.append('user_id', user_id);
-        files.forEach((file) => formData.append('images', file));
-        return formData;
-    };
-
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-
-        if (!validateForm()) return;
-
-        const formData = prepareFormData();
-        const authToken = localStorage.getItem('authToken'); // Get the token from localStorage
-
-        if (!authToken) {
-            alert('User is not authenticated');
+        if (!user_id) {
+            alert('User is not logged in');
             return;
         }
 
+        if (files.length && !postContent === 0) {
+            alert('You must provide either text, an image, or both.');
+            return;
+        }
+
+        const file = files[0];
+
+        // Use FormData for multipart submission
+        const formData = new FormData();
+        formData.append('user_id', user_id);
+        formData.append('content', postContent);
+        formData.append('file', file);
+
         try {
-            const response = await fetch('/api/posts', {
+            const response = await fetch('http://localhost:5000/api/posts', {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${authToken}`
-                },
-                body: formData
+                body: formData,
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to create post');
+            if (response.ok) {
+                alert('Post submitted successfully!');
+                setPostContent('');
+                setFiles([]);
+                window.location.href = '/';
+            } else {
+                const errorText = await response.text();
+                alert(`Failed to submit post: ${errorText}`);
             }
-
-            const result = await response.json();
-            console.log('Post created successfully:', result);
-            // Handle successful post creation (e.g., redirect or update UI)
         } catch (error) {
-            console.error('Error creating post:', error);
-            alert(error.message);
+            console.error('Error submitting post:', error);
+            alert('An error occurred. Please try again.');
         }
     };
 
+
     return (
         <>
-            <Header />
+            <Headers />
             <div className="NewPost">
-                <h1 className="NPtitle">New Post</h1>
                 <form onSubmit={handleSubmit}>
                     <textarea
-                        value={textContent}
-                        onChange={handleTextChange}
                         placeholder="What's on your mind?"
                         rows="4"
+                        value={postContent}
+                        onChange={handlePostContentChange}
                     />
                     <section className="container">
                         <div {...getRootProps({ className: 'dropzone' })}>
                             <input {...getInputProps()} />
                             <p>Drag 'n' drop some files here, or click to select files</p>
                         </div>
-                        <aside className="thumbsContainer">
-                            {thumbs.length > 0 ? thumbs : <p>No files selected</p>}
-                        </aside>
                     </section>
-                    <input type="submit" value="Post" />
+                    {files.length > 0 && (
+                        <div className="thumbsContainer">
+                            {files.map((file, index) => (
+                                <div className="thumb" key={`${file.name}-${index}`}>
+                                    <img
+                                        src={file.preview}
+                                        alt={file.name}
+                                        onLoad={() => URL.revokeObjectURL(file.preview)} // Revoke on load
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    <button type="submit">Post</button>
                 </form>
             </div>
         </>
