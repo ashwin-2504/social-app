@@ -1,102 +1,111 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate for redirection
-import Header from '../main/Header';
+import React, { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
+import Headers from '../main/Header';
 import './NewPost.css';
 
-function NewPost(props) {
+function NewPost() {
     const [files, setFiles] = useState([]);
-    const [textContent, setTextContent] = useState('');
-    const navigate = useNavigate(); // Initialize the useNavigate hook
-
+    const [postContent, setPostContent] = useState('');
     const { getRootProps, getInputProps } = useDropzone({
-        accept: { 'image/*': [] }, // Accept all image types
-        onDrop: acceptedFiles => {
-            setFiles(acceptedFiles.map(file => Object.assign(file, { preview: URL.createObjectURL(file) })));
+        accept: 'image/*',
+        onDrop: (acceptedFiles) => {
+            setFiles(
+                acceptedFiles.map((file) => {
+                    // Ensure only valid File objects are used
+                    return Object.assign(file, {
+                        preview: URL.createObjectURL(file),
+                    });
+                })
+            );
         },
     });
 
-    const thumbs = files.map(file => (
-        <div className="thumb" key={file.name}>
-            <div className="thumbInner">
-                <img
-                    src={file.preview}
-                    className="preview"
-                    onLoad={() => URL.revokeObjectURL(file.preview)}
-                    alt={file.name}
-                />
-            </div>
-        </div>
-    ));
 
     useEffect(() => {
-        return () => files.forEach(file => URL.revokeObjectURL(file.preview));
+        return () => {
+            files.forEach(file => URL.revokeObjectURL(file.preview));
+        };
     }, [files]);
 
-    const handleTextChange = (event) => {
-        setTextContent(event.target.value);
+    const handlePostContentChange = (e) => {
+        setPostContent(e.target.value);
     };
 
-    const handleSubmit = (event) => {
-        event.preventDefault();
-        const textContent = document.querySelector('textarea').value.trim();
-    
-        // Check if there is text or files
-        if (!textContent && !files.length) {
-            alert("Please enter some text or upload an image.");
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        const user_id = localStorage.getItem('user_id');
+        if (!user_id) {
+            alert('User is not logged in');
             return;
         }
-    
-        // Create a FormData object to send both text and images
+
+        if (files.length && !postContent === 0) {
+            alert('You must provide either text, an image, or both.');
+            return;
+        }
+
+        const file = files[0];
+
+        // Use FormData for multipart submission
         const formData = new FormData();
-        formData.append('user_id', 1); // Add the user ID (should be dynamically set)
-        formData.append('data', textContent); // Changed from 'content' to 'data'
-    
-        // Append images to the FormData object
-        files.forEach(file => {
-            formData.append('images', file);  // Make sure this matches the field name in your server code
-        });
-    
-        // Send the data to the backend via POST request
-        fetch('http://localhost:5000/api/posts', {
-            method: 'POST',
-            body: formData,
-        })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Post created successfully:', data);
-                alert('Post created successfully!');
-                navigate('/'); // Redirect to the homepage
-            })
-            .catch(error => {
-                console.error('Error creating post:', error);
-                alert('Error creating post');
+        formData.append('user_id', user_id);
+        formData.append('content', postContent);
+        formData.append('file', file);
+
+        try {
+            const response = await fetch('http://localhost:5000/api/posts', {
+                method: 'POST',
+                body: formData,
             });
+
+            if (response.ok) {
+                alert('Post submitted successfully!');
+                setPostContent('');
+                setFiles([]);
+                window.location.href = '/';
+            } else {
+                const errorText = await response.text();
+                alert(`Failed to submit post: ${errorText}`);
+            }
+        } catch (error) {
+            console.error('Error submitting post:', error);
+            alert('An error occurred. Please try again.');
+        }
     };
-    
+
 
     return (
         <>
-            <Header />
+            <Headers />
             <div className="NewPost">
-                <h1 className="NPtitle">New Post</h1>
                 <form onSubmit={handleSubmit}>
                     <textarea
-                        value={textContent}
-                        onChange={handleTextChange}
                         placeholder="What's on your mind?"
                         rows="4"
+                        value={postContent}
+                        onChange={handlePostContentChange}
                     />
                     <section className="container">
                         <div {...getRootProps({ className: 'dropzone' })}>
                             <input {...getInputProps()} />
                             <p>Drag 'n' drop some files here, or click to select files</p>
                         </div>
-                        <aside className="thumbsContainer">
-                            {thumbs.length > 0 ? thumbs : <p>No files selected</p>}
-                        </aside>
                     </section>
-                    <input type="submit" value="Post" />
+                    {files.length > 0 && (
+                        <div className="thumbsContainer">
+                            {files.map((file, index) => (
+                                <div className="thumb" key={`${file.name}-${index}`}>
+                                    <img
+                                        src={file.preview}
+                                        alt={file.name}
+                                        onLoad={() => URL.revokeObjectURL(file.preview)} // Revoke on load
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    <button type="submit">Post</button>
                 </form>
             </div>
         </>
