@@ -71,11 +71,12 @@ const storage = multer.diskStorage({
         cb(null, uploadDir);
     },
     filename: (req, file, cb) => {
-        const uniqueName = `${crypto.randomUUID()}${path.extname(file.originalname)}`;
+        const uniqueName = `${uuidv4()}${path.extname(file.originalname)}`;
         cb(null, uniqueName);
     },
 });
-const upload = multer({ storage }).single('file');
+
+const upload = multer({ storage }).single('file'); // for single file upload
 
 
 // Endpoint for image upload
@@ -184,22 +185,17 @@ app.get('/api/posts', (req, res) => {
 
 
 // POST route to handle new post submission
-app.post('/api/posts', upload, (req, res) => {
-    const { user_id, content } = req.body;
+app.post('/api/posts', (req, res) => {
+    const { user_id, content, image } = req.body;
 
-    if (!user_id ) {
-        return res.status(400).send('User ID is required');
+    // Validate the request
+    if (!user_id || !content || !image) {
+        return res.status(400).send('User ID, content, and image are required');
     }
 
-    if (!content && !req.file) {
-        return res.status(400).send('Post must include either text or an image.');
-    }
+    const postId = generatePostId(); // Generate a unique post ID
 
-
-    const postId = generatePostId();
-
-
-    // Insert post into the database
+    // Save post content to the database
     postsDb.run(
         'INSERT INTO posts (user_id, post_id, data) VALUES (?, ?, ?)',
         [user_id, postId, content],
@@ -209,27 +205,24 @@ app.post('/api/posts', upload, (req, res) => {
                 return res.status(500).send('Error saving post content');
             }
 
-            if (req.file) {
-                const imagePath = req.file.filename;
-                // Insert image path into the database
-                postsDb.run(
-                    'INSERT INTO post_images (post_id, image) VALUES (?, ?)',
-                    [postId, imagePath],
-                    function (err) {
-                        if (err) {
-                            console.error('Error saving image:', err);
-                            return res.status(500).send('Error saving image');
-                        }
-                        res.status(200).send('Post submitted successfully!');
+            // Decode the Base64 image and store it in the database
+            const imageBuffer = Buffer.from(image, 'base64');
+
+            postsDb.run(
+                'INSERT INTO post_images (post_id, image) VALUES (?, ?)',
+                [postId, imageBuffer],
+                function (err) {
+                    if (err) {
+                        console.error('Error saving image:', err);
+                        return res.status(500).send('Error saving image');
                     }
-                );
-            } else {
-                res.status(200).send('Post submitted successfully!');
-            }
+                    res.status(200).send('Post submitted successfully!');
+                    // res.status(200).json({ message: 'Post submitted successfully!' });
+                }
+            );
         }
     );
 });
-
 
 
 // Start Server
