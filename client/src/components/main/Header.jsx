@@ -4,7 +4,6 @@ import "./Header.css";
 
 function Header() {
   return (
-<<<<<<< Updated upstream
     <div classNameName="Header">
       <header>
         <div className="header-container">
@@ -49,11 +48,6 @@ function Header() {
           </div>
         </div>
       </header>
-=======
-    <div className="Header">
-      <CreatePostBtn className="CreatePostBtn" />
-      <LogoutBtn />
->>>>>>> Stashed changes
     </div>
   );
 }
