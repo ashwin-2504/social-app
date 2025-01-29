@@ -1,0 +1,121 @@
+/* General Reset */
+* {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      body {
+        font-family: Arial, sans-serif;
+      }
+      
+      header {
+        background-color: #2d2b2c;
+        padding: 10px 20px;
+      }
+      .fa-duotone {
+        position: fixed;
+        right:150px;
+        font-size: 30px;
+        color:#eee;
+      }
+      .fa-solid{
+        font-size: 30px;
+        color:#eee;
+        /* position: fixed;
+        right:80px;
+        top: 15px; */
+      }
+      
+      .header-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      
+      /* Logo Section */
+      .logo img {
+        height: 40px;
+        color:#eee /* Adjust as needed */
+      }
+      
+      /* Search Bar */
+      .search-bar {
+        display: flex;
+        /* position: relative;
+        right:150px; */
+        align-items: center;
+        flex: 1;
+        max-width: 600px;
+        margin: 0 20px;
+      }
+      
+      .search-bar input {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px 0 0 5px;
+        outline: none;
+        font-size: 16px;
+      }
+      
+      .search-bar .search-btn {
+        padding: 8px 15px;
+        border: none;
+        background-color: #555;
+        color: white;
+        cursor: pointer;
+        border-radius: 0 5px 5px 0;
+      }
+      
+      .search-bar .search-btn i {
+        font-size: 16px;
+      }
+      
+       #button{
+        
+        margin-right: 40px;
+       }
+      
+      /* Profile Section */
+      .profile {
+        color: #eee;
+        position: relative;
+      }
+      
+      .profile-img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid white;
+      }
+      
+      .dropdown-menu {
+        display: none;
+        position: absolute;
+        top: 50px;
+        right: 0;
+        background-color: white;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        border-radius: 5px;
+        overflow: hidden;
+        z-index: 1000;
+      }
+      
+      .dropdown-menu a {
+        display: block;
+        padding: 10px 15px;
+        text-decoration: none;
+        color: #333;
+        border-bottom: 1px solid #eee;
+      }
+      
+      .dropdown-menu a:hover {
+        background-color: #f4f4f4;
+      }
+      
+      .profile:hover .dropdown-menu {
+        display: block;
+      }
+      
