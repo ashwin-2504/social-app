@@ -20,7 +20,6 @@ function NewPost() {
         },
     });
 
-
     useEffect(() => {
         return () => {
             files.forEach(file => URL.revokeObjectURL(file.preview));
